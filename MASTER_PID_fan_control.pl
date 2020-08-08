@@ -873,7 +873,7 @@ sub ocl_set_zone_values
         @lines = join("\n", @result) =~ m/$pattern/g;
         @speed = split(/ /, @lines[2]);
         $ocl_current_fan_speeds[ $ocl_zones[$zone]->{$fan} ] = $speed[1];
-        if ($use_influx == 1 && $influx_fan_speed == 1) { log_to_influx("FanSpeed", $fan, $speed[1]) ;}
+        #if ($use_influx == 1 && $influx_fan_speed == 1) { log_to_influx("FanSpeed", $fan, $speed[1]) ;}
     }
     if ($use_influx == 1 && $influx_sensors == 1) {
         foreach my $sensor (@ocl_sensors) {
@@ -1652,6 +1652,7 @@ sub get_fan_speed2 {
             }
         }
     }
+    if ($use_influx == 1 && $influx_fan_speed == 1) { log_to_influx("FanSpeed", $fan_name, $fan_speed) ;}
     return $fan_speed;
 }
 
