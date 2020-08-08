@@ -921,7 +921,7 @@ sub get_one_hd_temp
         dprint(2, $_);
         if (/Temperature_Celsius/) { $temp = (split)[9]; }
     }
-
+    if ($use_influx == 1 && $influx_disks == 1) { log_to_influx("DiskTemp", $disk_dev, $temp);}
     return $temp;
 }
 
