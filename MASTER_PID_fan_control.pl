@@ -900,7 +900,7 @@ sub get_hd_list {
     my @cmd = ('camcontrol', 'devlist');
     my @vals;
     foreach (run_command(@cmd)) {
-        next if (/SSD|Verbatim|Kingston|Elements/);
+        next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON/);
         if (/\((?:pass\d+,(a?da\d+)|(a?da\d+),pass\d+)\)/) {
             dprint(2, $1);
             push(@vals, $1);
