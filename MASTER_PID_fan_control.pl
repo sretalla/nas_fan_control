@@ -467,7 +467,7 @@ my $hd_fan_zone  = 1;
 #---------------------------------------------------------------------------
 my $cpu_fan_header = "Fan 2";   # used for printing to standard output for debugging
 my $hd_fan_header  = "Fan 0";   # used for printing to standard output for debugging
-my @hd_fan_list = qw("Fan 0" "Fan 1");    # used for logging to file
+my @hd_fan_list = ("Fan 0", "Fan 1");    # used for logging to file
 
 ################
 ## MISC
