@@ -480,7 +480,7 @@ my @hd_fan_list = qw("Fan 0" "Fan 1");    # used for logging to file
 my $ipmitool = '/usr/local/bin/ipmitool';
 
 # smartctl path
-my $smartctlCmd = '/root/fakesmartctl.pl';
+my $smartctlCmd = '/usr/local/sbin/smartctl';
 
 
 # opencorsairlink path
