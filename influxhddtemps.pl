@@ -12,7 +12,7 @@ my $influxdb_db="freenas";
 my $influxdb_host="192.168.2.234";
 my $influxdb_port="8086";
 my $influxdb_protocol="http";
-my $influxdb_hostname="medianas";
+my $influxdb_hostname="fantest";
 my $influxdb_url="$influxdb_protocol://$influxdb_host:$influxdb_port/write?db=$influxdb_db";
 
 # smartctl path
