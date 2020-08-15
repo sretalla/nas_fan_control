@@ -200,8 +200,6 @@ use warnings;
 ## number of warmest disks to average, target average temperature and PID gains.
 ## If file is not available, or corrupt, use defaults specified in this script.
 #---------------------------------------------------------------------------
-
-#$config_file = '/root/nas_fan_control/PID_fan_control_config.ini';
 my $config_file = '/root/PID_fan_control_config.ini';
 
 #---------------------------------------------------------------------------
@@ -245,6 +243,7 @@ my @ocl_current_fan_speeds;
 #---------------------------------------------------------------------------
 # Optionally log fan speeds and/or disk temps to influxdb
 # also for OpenCorsairLink, log onboard temperature sensor readings as specified in that section
+#create the db with: curl -XPOST 'http://influxdb.host:8086/query' --data-urlencode 'q=CREATE DATABASE "freenas"'
 #---------------------------------------------------------------------------
 
 my $use_influx = 1;
@@ -262,7 +261,18 @@ my $influxdb_url="$influxdb_protocol://$influxdb_host:$influxdb_port/write?db=$i
 
 ##DEFAULT VALUES
 ## Use the values declared below if the config file is not present
-
+#---------------------------------------------------------------------------
+## PID CONTROL GAINS
+## If you were using the spinpid.sh PID control script published by
+## @Glorious1 at the link below, you will need to adjust the value of $Kp
+## that you were using, as that script defined Kp in terms of the gain per
+## one cycle around the loop, but this script defines it in terms of the
+## gain per minute.  Divide the Kp value from the spinpid.sh script by the
+## time in minutes for checking hard drive temperatures.
+## For example, if you used a gain of Kp = 8, and a T = 3 (3 minute interval),
+## the new value is $Kp = 8/3.
+## Kd values from the spinpid.sh script can be used directly here.
+## https://forums.freenas.org/index.php?threads/script-to-control-fan-speed-in-response-to-hard-drive-temperatures.41294/page-4#post-285668
 #---------------------------------------------------------------------------
 # PID control loop will target this average temperature for the warmest N disks
 #---------------------------------------------------------------------------
@@ -314,14 +324,6 @@ my $low_cpu_temp  = 35;    # will go LOW when we fall below 35 again
 ## this is the more silent your system.
 ## Note, it is possible for your HDs to go above this... but if your cooling
 ## is good, they shouldn't.
-#---------------------------------------------------------------------------
-
-#---------------------------------------------------------------------------
-# define this value in the DEFAULT VALUES block at top of script
-#---------------------------------------------------------------------------
-# my $hd_ave_target = 38.0;
-
-#---------------------------------------------------------------------------
 # PID control aborts and fans set to 100% duty cycle when a HD hits
 # this temp. This ensures that no matter how poorly chosen the PID gains are,
 # or how much of a spread there is between the average HD temperature and the
@@ -329,16 +331,6 @@ my $low_cpu_temp  = 35;    # will go LOW when we fall below 35 again
 # reaches this temperature. Unit is Celcius
 #---------------------------------------------------------------------------
 my $hd_max_allowed_temp = 40;
-
-#---------------------------------------------------------------------------
-## NUMBER OF WARMEST HD TO AVERAGE
-#---------------------------------------------------------------------------
-
-#---------------------------------------------------------------------------
-# average the temperatures of this many warmest hard drives when calculating
-# the average disk temperature
-#---------------------------------------------------------------------------
-# my $hd_num_peak = 4;
 
 #---------------------------------------------------------------------------
 ## CPU TEMP TO OVERRIDE HD FANS
@@ -388,25 +380,6 @@ my $hd_cpu_override_duty_cycle = 95;
 # 0 if the script only controls HD fans.
 #---------------------------------------------------------------------------
 my $cpu_temp_control = 1;
-
-#---------------------------------------------------------------------------
-## PID CONTROL GAINS
-## If you were using the spinpid.sh PID control script published by
-## @Glorious1 at the link below, you will need to adjust the value of $Kp
-## that you were using, as that script defined Kp in terms of the gain per
-## one cycle around the loop, but this script defines it in terms of the
-## gain per minute.  Divide the Kp value from the spinpid.sh script by the
-## time in minutes for checking hard drive temperatures.
-## For example, if you used a gain of Kp = 8, and a T = 3 (3 minute interval),
-## the new value is $Kp = 8/3.
-## Kd values from the spinpid.sh script can be used directly here.
-## https://forums.freenas.org/index.php?threads/script-to-control-fan-speed-in-response-to-hard-drive-temperatures.41294/page-4#post-285668
-#---------------------------------------------------------------------------
-
-#my $Kp = 8/3;
-# my $Kp = 16/3; # define this value in the DEFAULT VALUES block at top of script
-# my $Ki = 0;    # define this value in the DEFAULT VALUES block at top of script
-# my $Kd =  96;  # define this value in the DEFAULT VALUES block at top of script
 
 #######################
 ## FAN CONFIGURATION
