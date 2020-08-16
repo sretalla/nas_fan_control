@@ -251,6 +251,7 @@ my $influx_fan_speed = 1;
 my $influx_fan_duty = 1;
 my $influx_disks = 1;
 my $influx_sensors = 1;
+my $influx_average = 1;
 my $influxdb_db="freenas";
 my $influxdb_host="192.168.1.1";
 my $influxdb_port="8086";
@@ -957,7 +958,10 @@ sub get_hd_temps
     }
 
     my $ave_temp = $temp_sum / $hd_num_peak;
-
+    if ($use_influx == 1 && $influx_average == 1) { 
+    	log_to_influx("DiskTemp", "avg", $ave_temp);
+    	log_to_influx("DiskTemp", "count", $HD_count);
+    }
     return ( $min_temp, $max_temp, $ave_temp, @temp_list );
 }
 
