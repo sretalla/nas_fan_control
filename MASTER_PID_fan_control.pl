@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl -w
 
+# modify the above for TrueNAS SCALE to /usr/bin/perl
+
 use strict;
 use warnings;
 
