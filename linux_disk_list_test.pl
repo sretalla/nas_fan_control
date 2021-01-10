@@ -1,13 +1,16 @@
 #!/usr/bin/perl -w
-
+# modify the above for TrueNAS CORE to /usr/local/bin/perl
 use strict;
 use warnings;
+
+my $debug = 1;
 
 main();
 
 ################################################ MAIN
 
 sub main {
+    my @hd_list;
     @hd_list = get_hd_list();
     print @hd_list;
 }
@@ -57,20 +60,21 @@ sub run_command {
 }
 
 sub get_hd_list {
-    my @cmd = ('smdisk', '-l');
+    my @cmd = ('sfdisk', '-l');
     my @vals;
-   
-    my @result = run_command(@cmd)) 
-        $pattern = qr/(Disk.*)\n(Disk model.*)\n\n/;
+    my @lines;
+    my @desc;
+    my @result;
+    @result = run_command(@cmd);
+        my $pattern = qr/(Disk.*)\n(Disk model.*)\n\n/;
         @lines = join("\n", @result) =~ m/$pattern/g;
-        @speed = split(/ /, @lines[2]);
-        $ocl_current_fan_speeds[ $ocl_zones[$zone]->{$fan} ] = $speed[1];
-        next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON/);
-        if (/\((?:pass\d+,(a?da\d+)|(a?da\d+),pass\d+)\)/) {
-            dprint(2, $1);
-            push(@vals, $1);
-        
-    }
+        @desc = split(/ /, @lines[2]);
+        # $ocl_current_fan_speeds[ $ocl_zones[$zone]->{$fan} ] = $speed[1];
+        # next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON/);
+        # if (/\((?:pass\d+,(a?da\d+)|(a?da\d+),pass\d+)\)/) {
+        #    dprint(2, $1);
+        push(@vals, @lines[1]);
     dprint(3, "@vals");
     return @vals;
 }
+
