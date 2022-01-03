@@ -1,6 +1,4 @@
-#!/usr/local/bin/perl -w
-
-# modify the above for TrueNAS SCALE to /usr/bin/perl
+#!/usr/bin/env -S perl -w
 
 use strict;
 use warnings;
@@ -203,6 +201,12 @@ use warnings;
 ## If file is not available, or corrupt, use defaults specified in this script.
 #---------------------------------------------------------------------------
 my $config_file = '/root/PID_fan_control_config.ini';
+
+#---------------------------------------------------------------------------
+# OS mapping -- This controls the methods used for CPU Temp and Disk List 
+# building ('linux' or 'freebsd')
+#---------------------------------------------------------------------------
+my $operating_system = 'linux';
 
 #---------------------------------------------------------------------------
 # the "script mode": what motherboard(-class) is being driven. Possible values:
@@ -873,16 +877,34 @@ sub log_to_influx
 }
 
 sub get_hd_list {
-    my @cmd = ('camcontrol', 'devlist');
     my @vals;
-    foreach (run_command(@cmd)) {
-        next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON/);
-        if (/\((?:pass\d+,(a?da\d+)|(a?da\d+),pass\d+)\)/) {
-            dprint(2, $1);
-            push(@vals, $1);
-        }
+    if ($operating_system eq 'freebsd' ) {
+      my @freebsdcmd = ('camcontrol', 'devlist');
+      foreach (run_command(@freebsdcmd)) {
+          next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON/);
+          if (/\((?:pass\d+,(a?da\d+)|(a?da\d+),pass\d+)\)/) {
+              dprint(2, $1);
+              push(@vals, $1);
+          }
+      }
+      dprint_list(3, "@vals");
     }
-    dprint(3, "@vals");
+    elsif ($operating_system eq 'linux' ) {
+      my @linuxcmd = ('sfdisk', '-l');
+      #my $pattern = qr/($fan_name.*)\n(.PWM.*)\n(.RPM.*)/;
+      my $joinedcmd = join("\n", run_command(@linuxcmd));
+      #my @lines = join("\n", @result) =~ m/$pattern/g;
+
+      my @drivechunks = split(/\n{3}/, $joinedcmd);
+      foreach (@drivechunks) {
+          next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON|mapper/);
+          if (/^Disk\s+\/dev\/(s.+):/) {
+              dprint(2, $1);
+              push(@vals, $1);
+          }
+      }
+      dprint_list(3, "@vals");
+    }
     return @vals;
 }
 
@@ -1444,28 +1466,50 @@ sub get_cpu_temp_sysctl {
     # significantly more efficient to only spawn one subprocess for sysctl than a pipeline with
     # egrep, awk, sed, kitchensink, garagedooropener, all to do what Perl is good at
     #----------------------------------------------------------------------
-
     my @core_temps_list;
     my $max_core_temp = 0;
-    my @cmd = ('sysctl', '-a', 'dev.cpu');
-    foreach (run_command(@cmd)) {
-        if (/^dev\.cpu\.\d+\.temperature:\s+([\d.]+)C$/) {
-            push(@core_temps_list, $1);
-            dprint( 2, "core_temp = $1 C" );
-            $max_core_temp = $1 if $1 > $max_core_temp;
-        }
+
+    if ($operating_system eq 'freebsd' ) { 
+    #  my @core_temps_list;
+    #  my $max_core_temp = 0;
+      my @freebsdcmd = ('sysctl', '-a', 'dev.cpu');
+      foreach (run_command(@freebsdcmd)) {
+          if (/^dev\.cpu\.\d+\.temperature:\s+([\d.]+)C$/) {
+              push(@core_temps_list, $1);
+              dprint( 2, "core_temp = $1 C" );
+              $max_core_temp = $1 if $1 > $max_core_temp;
+          }
+      }
+
+      dprint_list( 4, "core_temps_list", @core_temps_list );
+
+      dprint( 1, "CPU Temp: $max_core_temp" );
+
+      # possible that this is 0 if there was a fault reading the core temps
+      $last_cpu_temp = $max_core_temp;
     }
+    elsif ($operating_system eq 'linux' ) {
+    #  my @core_temps_list;
+    #  my $max_core_temp = 0;
+      my @linuxcmd = ('sensors', '-u');
+      foreach (run_command(@linuxcmd)) {
+          if (/^\s+temp\d+_input:\s([\d.]+)$/) {
+              push(@core_temps_list, $1);
+              dprint( 2, "core_temp = $1 C" );
+              $max_core_temp = $1 if $1 > $max_core_temp;
+          }
+      }
 
-    dprint_list( 4, "core_temps_list", @core_temps_list );
+      dprint_list( 4, "core_temps_list", @core_temps_list );
 
-    dprint( 1, "CPU Temp: $max_core_temp" );
+      dprint( 1, "CPU Temp: $max_core_temp" );
 
-    # possible that this is 0 if there was a fault reading the core temps
-    $last_cpu_temp = $max_core_temp;
+      # possible that this is 0 if there was a fault reading the core temps
+      $last_cpu_temp = $max_core_temp;
+    }
 
     return $max_core_temp;
 }
-
 # reads the IPMI 'CPU Temp' field to determine overall CPU temperature
 sub get_cpu_temp_ipmi {
     my $cpu_temp;
