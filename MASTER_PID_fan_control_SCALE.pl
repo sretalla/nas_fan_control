@@ -891,10 +891,7 @@ sub get_hd_list {
     }
     elsif ($operating_system eq 'linux' ) {
       my @linuxcmd = ('sfdisk', '-l');
-      #my $pattern = qr/($fan_name.*)\n(.PWM.*)\n(.RPM.*)/;
       my $joinedcmd = join("\n", run_command(@linuxcmd));
-      #my @lines = join("\n", @result) =~ m/$pattern/g;
-
       my @drivechunks = split(/\n{3}/, $joinedcmd);
       foreach (@drivechunks) {
           next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON|mapper/);
