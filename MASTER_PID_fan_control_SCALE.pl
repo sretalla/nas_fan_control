@@ -1486,17 +1486,26 @@ sub get_cpu_temp_sysctl {
       $last_cpu_temp = $max_core_temp;
     }
     elsif ($operating_system eq 'linux' ) {
-    #  my @core_temps_list;
-    #  my $max_core_temp = 0;
-      my @linuxcmd = ('sensors', '-u');
-      foreach (run_command(@linuxcmd)) {
-          if (/^\s+temp\d+_input:\s([\d.]+)$/) {
-              push(@core_temps_list, $1);
-              dprint( 2, "core_temp = $1 C" );
-              $max_core_temp = $1 if $1 > $max_core_temp;
+      my @linuxcmd = ('sensors', '-j');
+      my $joinedcmd = join("\n", run_command(@linuxcmd));
+      dprint(3, $joinedcmd);
+      my $jsonobject = decode_json($joinedcmd) or die "JSON parse error\n";
+      while (my ($key, $value1 ) = each(%$jsonobject)) {
+        next unless ref $value1;            # skip if $value isn't a ref
+        next if scalar (keys %$value1) < 2;  # skip if the numbers of HASH keys < 2
+        while (my ($item, $value2) = each %$value1) {
+	  next unless ref $value2;            # skip if $value isn't a ref
+          next if scalar (keys %$value2) < 2;  # skip if the numbers of HASH keys < 2
+          next if not $item =~ (/Core/);
+          while (my ($property, $value3) = each %$value2) {
+            next if not $property =~ (/_input/);
+            push(@core_temps_list, $value3);
+            dprint( 2, "core_temp = $value3 C" );
+            $max_core_temp = $value3 if $value3 > $max_core_temp;
+            print "$key, $item, $property, $value3\n";
           }
+        }
       }
-
       dprint_list( 4, "core_temps_list", @core_temps_list );
 
       dprint( 1, "CPU Temp: $max_core_temp" );
