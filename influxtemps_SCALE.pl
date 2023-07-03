@@ -171,7 +171,7 @@ sub get_one_drive_temp
     my @diskcommand = ($smartctlCmd, '-a', "/dev/$disk_dev");
     my $temp;
     my $serial;
-    my $megapattern = qr/Serial Number\:\s*(\S*)\s[\s|\S]*(?|Temperature_Celsius[\s|\S]{64}(\d*)\s|Airflow_Temperature_Cel[\s|\S]{60}(\d*)\s|Temperature\:\s*(\d*)\sCelsius)/;
+    my $megapattern = qr/[Ss]erial [Nn]umber\:\s*(\S*)\s[\s|\S]*(?|Temperature_Celsius[\s|\S]{64}(\d*)\s|Airflow_Temperature_Cel[\s|\S]{60}(\d*)\s|Temperature\:\s*(\d*)\sCelsius|Temperature_Internal[\s|\S]{63}(\d*)\s|Current Drive Temperature\:[\s|\S]{5}(\d*)\s)/;
     
     my @result = join("\n", run_command(@diskcommand)) =~ m/$megapattern/g;
 
