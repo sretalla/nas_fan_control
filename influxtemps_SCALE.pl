@@ -91,11 +91,11 @@ sub log_to_influx
             my $payload;
             my $auth;
             if ( $influx_version == 1) {
-                my $payload = "-XPOST \"$influxdb_url\" -d \"$data\"";
+                $payload = "-XPOST \"$influxdb_url\" -d \"$data\"";
             }
             else {
-                my $auth = "Authorization: Token $influx_token";
-                my $payload = "-XPOST \"$influxdb_url\" -d \"$data\" --header \"$auth\"";
+                $auth = "Authorization: Token $influx_token";
+                $payload = "-XPOST \"$influxdb_url\" -d \"$data\" --header \"$auth\"";
             }
             my @influxcommand = ('curl', '-i', $payload);
             #print join (/ /, @influxcommand), "\n";
