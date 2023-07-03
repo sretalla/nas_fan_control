@@ -5,7 +5,7 @@ use warnings;
 
 my $operating_system = "linux";
 
-my $use_influx = 0;
+my $use_influx = 1;
 my $influx_version = 1;
 my $influx_disks = 1;
 #my $influx_token needed only if you use influx version 2 or later = "some token ... ends with ==";
