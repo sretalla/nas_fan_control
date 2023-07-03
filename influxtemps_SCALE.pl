@@ -81,25 +81,26 @@ sub log_to_influx
 {
     # $type should be SensorTemp, FanSpeed, FanDuty or DiskTemp, $name should identify the item (da0, Fan 1, Temp...)
     my ( $type, $name, $value) = @_;
-        (my $name_nospaces = $name) =~ s/\s//g;
+        if ($name) {
+            (my $name_nospaces = $name) =~ s/\s//g;
         
-        #Add as many of these as you want/need, changing the name used to log the temp into the influx DB from serial number to whatever friendly name you want 
-        if ($name_nospaces eq "12345678") { $name_nospaces = "BootPoolSSD1"; }
+            #Add as many of these as you want/need, changing the name used to log the temp into the influx DB from serial number to whatever friendly name you want 
+            if ($name_nospaces eq "12345678") { $name_nospaces = "BootPoolSSD1"; }
 
-        my $data = "$type,component=$influxdb_hostname$name_nospaces value=$value";
-        my $payload;
-        my $auth;
-        if ( $influx_version == 1) {
-            my $payload = "-XPOST \"$influxdb_url\" -d \"$data\"";
+            my $data = "$type,component=$influxdb_hostname$name_nospaces value=$value";
+            my $payload;
+            my $auth;
+            if ( $influx_version == 1) {
+                my $payload = "-XPOST \"$influxdb_url\" -d \"$data\"";
+            }
+            else {
+                my $auth = "Authorization: Token $influx_token";
+                my $payload = "-XPOST \"$influxdb_url\" -d \"$data\" --header \"$auth\"";
+            }
+            my @influxcommand = ('curl', '-i', $payload);
+            #print join (/ /, @influxcommand), "\n";
+            my @output = run_command(@influxcommand);
         }
-        else {
-            my $auth = "Authorization: Token $influx_token";
-            my $payload = "-XPOST \"$influxdb_url\" -d \"$data\" --header \"$auth\"";
-        }
-        my @influxcommand = ('curl', '-i', $payload);
-        #print join (/ /, @influxcommand), "\n";
-        my @output = run_command(@influxcommand);
-
 }
 
 sub get_hd_list {
