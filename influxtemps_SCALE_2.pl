@@ -27,7 +27,7 @@ my $megadiskPattern;
 my $smartctlCmd;
 if ( $operating_system eq 'linux' ) {
     $smartctlCmd = '/usr/sbin/smartctl';
-    $megadiskPattern = '(?|Disk\s+\/dev\/(s.+):.*\sDisk model: (?|!Verbatim|!Kingston|!Elements|!Enclosure|!Virtual|!KINGSTON|!mapper|!PSSD T7|Samsung)|Disk\s+\/dev\/(nvme\d)n\d:.*\sDisk model: (?|Samsung|!PSSD T7))';
+    $megadiskPattern = '(?|Disk\s+\/dev\/(s.+):.*\sDisk model: (?|!PSSD T7|X\d+_TPM|SanDisk|TOSHIBA|ST\d+|HUSM|INTEL|Samsung)|Disk\s+\/dev\/(nvme\d)n\d:.*\sDisk model: (?|INTEL|Samsung))';
 }
 elsif ( $operating_system eq 'freebsd' ) {
     $smartctlCmd = '/usr/local/sbin/smartctl';
