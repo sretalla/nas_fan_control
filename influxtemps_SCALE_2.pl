@@ -104,10 +104,7 @@ sub get_hd_list {
       my @linuxcmd = ('sfdisk', '-l', '/dev/sd* /dev/nvm*');
       @drive = join("\n", run_command(@linuxcmd)) =~ m/$megadiskPattern/gm;
     }  
-    foreach (@drive) {
-        #print $_, $1;
-        push(@vals, $_);
-    }
+    @vals = @drive;
     #print join (" ", @vals), "\n";
     return @vals;
 }
