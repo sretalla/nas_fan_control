@@ -144,11 +144,11 @@ sub get_hd_list {
     if ($operating_system eq 'freebsd' ) {
       my @freebsdcmd = ('camcontrol', 'devlist');
       my @NVMEcmd = ('nvmecontrol', 'devlist');
-      @drive = join("\n", (run_command(@freebsdcmd), run_command(@NVMEcmd))) =~ m/$megadiskPattern/gm;
+      @drive = join("\n", (run_command(@freebsdcmd), run_command(@NVMEcmd))) =~ m/$megadiskPattern/gmi;
     }
     elsif ($operating_system eq 'linux' ) {
       my @linuxcmd = ('sfdisk', '-l', '/dev/sd* /dev/nvm*');
-      @drive = join("\n", run_command(@linuxcmd)) =~ m/$megadiskPattern/gm;
+      @drive = join("\n", run_command(@linuxcmd)) =~ m/$megadiskPattern/gmi;
     }  
     @vals = @drive;
     #print join (" ", @vals), "\n";
