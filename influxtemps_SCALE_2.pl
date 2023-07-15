@@ -23,15 +23,61 @@ else {
     $influxdb_url="$influxdb_protocol://$influxdb_host:$influxdb_port/api/v2/write?org=$influx_org\&bucket=$influxdb_db";
 }
 
+# NVME drive filters: Each type of drive to be included needs to be added to this array, drives to specifically avoid can also be added with ! as the first character.
+# What you want to see here is a string or a regular expression that matches the text you see in the output of 'sfdisk -l' (Linux) or 'nvmecontrol devlist' (freebsd)
+# Example (Linux):
+# Disk /dev/nvme0n1: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors
+# Disk model: Samsung SSD 970 EVO Plus 1TB
+#             ^ Text starting here is what you need to match
+#
+# Example (freebsd):
+#  nvme0: Samsung SSD 970 EVO Plus 1TB
+#         ^ Text starting here is what you need to match
+#
+# Add as many of these as you want/need
+my @nvmeFilter  = (
+    'INTEL',
+    'Samsung',
+    'KINGSTON'
+);
+
+# HDD/SSD filters: Each type of drive to be included needs to be added to this array, drives to specifically avoid can also be added with ! as the first character.
+# What you want to see here is a string or a regular expression that matches the text you see in the output of 'sfdisk -l' (Linux) or 'camcontrol devlist' (freebsd)
+# Example (Linux):
+# Disk /dev/sda: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors
+# Disk model: Samsung SSD 860 
+#             ^ Text starting here is what you need to match
+#
+# Example (freebsd):
+# <Samsung SSD 850 EVO 500GB XXXXXXX>  at scbus1 target 0 lun 0 (ada0,pass24)
+#  ^ Text starting here is what you need to match
+#
+# Add as many of these as you want/need
+my @diskFilter  = (
+    '!PSSD T7',
+    'X\d+_TPM',
+    'SanDisk',
+    'ST\d+',
+    'TOSHIBA',
+    'HUSM',
+    'INTEL',
+    'Samsung',
+    '.+WDC',
+    'WDC',
+    'Kingston'
+);
+
 my $megadiskPattern;
 my $smartctlCmd;
 if ( $operating_system eq 'linux' ) {
     $smartctlCmd = '/usr/sbin/smartctl';
-    $megadiskPattern = '(?|Disk\s+\/dev\/(s.+):.*\sDisk model: (?|!PSSD T7|X\d+_TPM|SanDisk|TOSHIBA|ST\d+|HUSM|INTEL|Samsung)|Disk\s+\/dev\/(nvme\d)n\d:.*\sDisk model: (?|INTEL|Samsung))';
+    $megadiskPattern = join("", '(?|Disk\s+\/dev\/(s.+):.*\sDisk model: (?|',join("\|", @diskFilter),')|Disk\s+\/dev\/(nvme\d)n\d:.*\sDisk model: (?|',join("\|", @nvmeFilter),'))');
 }
 elsif ( $operating_system eq 'freebsd' ) {
     $smartctlCmd = '/usr/local/sbin/smartctl';
-    $megadiskPattern = '(?|<(?|.*WDC.*pass\d+,(a?da\d+)\)\s|.*WDC.*\((a?da\d+),.*\)\s|.*(?|Samsung|KINGSTON).*\((a?da\d+),.*\)\s)|.*(nvme\d+):.*(?|Samsung|KINGSTON).*)';
+    #$megadiskPattern = '(?|<(?|.*WDC.*pass\d+,(a?da\d+)\)\s|.*WDC.*\((a?da\d+),.*\)\s|.*(?|Samsung|KINGSTON).*\((a?da\d+),.*\)\s)|.*(nvme\d+):.*(?|Samsung|KINGSTON).*)'; #OLD
+    #$megadiskPattern = '(?|<(?|.+WDC|WDC|Kingston|Samsung).+(?|pass\d+,(a?da\d+)|\((a?da\d+),pass\d+.+)|.(nvme\d+):.(?|Samsung|KINGSTON).+)'; #NEW
+    $megadiskPattern = join("", '(?|<(?|',join("\|", @diskFilter),').+(?|pass\d+,(a?da\d+)|\((a?da\d+),pass\d+.+)|.(nvme\d+):.(?|',join("\|", @nvmeFilter),').+)');
 }
 
 # disk name substitutions: for each serial number add a record here in the format of 'SerialXYZ#FriendlyReplacement' Serial number followed directly by # followed directly by the replacement string... no spaces anywhere please
