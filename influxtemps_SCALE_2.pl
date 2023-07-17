@@ -28,7 +28,6 @@ my $influxdb_protocol="http";
 # useful for differentiation if logging multiple servers to the same influxdb with this script. No spaces.
 my $influxdb_hostname="fantest_";
 
-
 # NVME drive filters: Each type of drive to be included needs to be added to this array, drives to specifically avoid can also be added with ! as the first character.
 # What you want to see here is a string or a regular expression that matches the text you see in the output of 'sfdisk -l' (Linux) or 'nvmecontrol devlist' (freebsd)
 # Example (Linux):
@@ -108,7 +107,6 @@ main();
 
 sub main {
   @hd_list = get_hd_list();
-  #print join (" ", @hd_list);
   foreach my $disk (@hd_list) {
     my $disktemp = get_one_drive_temp($disk);
   }
@@ -117,12 +115,10 @@ sub main {
 sub run_command {
     my @cmd = @_;
     my ($out, $err);
-    #dprint(3, 'run_command: '.join(' ', @cmd));
     my $command = join(' ', @cmd);
     $out = `$command`;
     print $out;
     chomp($out);
-    #dprint(2, $out);
     return split(/\n/, $out);
 }
 
