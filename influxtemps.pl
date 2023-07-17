@@ -141,7 +141,6 @@ sub log_to_influx
                 $payload = "-XPOST \"$influxdb_url\" -d \"$data\" --header \"$auth\"";
             }
             my @influxcommand = ('curl', '-i', $payload);
-            #print join (/ /, @influxcommand), "\n";
             my @output = run_command(@influxcommand);
         }
 }
