@@ -28,7 +28,7 @@ my $influxdb_protocol="http";
 # useful for differentiation if logging multiple servers to the same influxdb with this script. No spaces.
 my $influxdb_hostname="fantest_";
 
-# NVME drive filters: Each type of drive to be included needs to be added to this array, drives to specifically avoid can also be added with ! as the first character.
+# NVME drive filters: Each type of drive to be included needs to be added to this array, you may need to go further than the first word to ensure exclusion of additional matches by model.
 # What you want to see here is a string or a regular expression that matches the text you see in the output of 'sfdisk -l' (Linux) or 'nvmecontrol devlist' (freebsd)
 # Example (Linux):
 # Disk /dev/nvme0n1: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors
@@ -46,7 +46,7 @@ my @nvmeFilter  = (
     'KINGSTON'
 );
 
-# HDD/SSD filters: Each type of drive to be included needs to be added to this array, drives to specifically avoid can also be added with ! as the first character.
+# HDD/SSD filters: Each type of drive to be included needs to be added to this array, you may need to go further than the first word to ensure exclusion of additional matches by model.
 # What you want to see here is a string or a regular expression that matches the text you see in the output of 'sfdisk -l' (Linux) or 'camcontrol devlist' (freebsd)
 # Example (Linux):
 # Disk /dev/sda: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors
@@ -59,14 +59,13 @@ my @nvmeFilter  = (
 #
 # Add as many of these as you want/need
 my @diskFilter  = (
-    '!PSSD T7',
     'X\d+_TPM',
     'SanDisk',
     'ST\d+',
     'TOSHIBA',
     'HUSM',
     'INTEL',
-    'Samsung',
+    'Samsung SSD',
     '.+WDC',
     'WDC',
     'Kingston'
