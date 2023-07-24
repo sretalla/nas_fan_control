@@ -116,8 +116,7 @@ sub run_command {
     my ($out, $err);
     my $command = join(' ', @cmd);
     $out = `$command`;
-    print $out;
-    chomp($out);
+    if ($debug == 1) { print $out; }
     return split(/\n/, $out);
 }
 
