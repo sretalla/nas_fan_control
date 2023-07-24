@@ -8,7 +8,8 @@ use warnings;
 # It will log disk temperatures for disks according to the filters set and ensures that serial numbers are used rather than disk identifiers
 # to ensure the same disk can always be logged with the same name. Serial numbers may be substituted for text specified for each one (or not).
 
-# $debug: if 1, will print the disk list in full and the temp and serial number of each found disk following the smartctl result
+# $debug: if 2, will print all command output,  the disk list in full and the temp and serial number of each found disk following the smartctl result
+#         if 1, will print the disk list in full and the temp and serial number of each found disk following the smartctl result
 my $debug = 0;
 # $operating_system: either "linux" (SCALE) or "freebsd" (CORE)
 my $operating_system = "linux";
@@ -116,7 +117,7 @@ sub run_command {
     my ($out, $err);
     my $command = join(' ', @cmd);
     $out = `$command`;
-    if ($debug == 1) { print $out; }
+    if ($debug == 2) { print $out; }
     return split(/\n/, $out);
 }
 
@@ -156,24 +157,25 @@ sub get_hd_list {
       @drive = join("\n", run_command(@linuxcmd)) =~ m/$diskPattern/gmi;
     }  
     @vals = @drive;
-    if ($debug == 1) { print join ("\n", @vals), "\n"; }
+    if ($debug >= 1) { print join ("\n", @vals), "\n"; }
     return @vals;
 }
 
 sub get_one_drive_temp
 {
     my $disk_dev = shift;
+    if ($debug >= 1) { print "Disk $disk_dev\n"; }
     my @diskcommand = ($smartctlCmd, '-a', "/dev/$disk_dev");
     my $temp;
     my $serial;
     my @result = join("\n", run_command(@diskcommand)) =~ m/$smartpattern/g;
     if ($result[1]) {
         $temp = $result[1];     
-        if ($debug == 1) { print "Temperature is $temp\n"; }
+        if ($debug >= 1) { print "Temperature is $temp\n"; }
     }
     if ($result[0]) {
         $serial = $result[0];     
-        if ($debug == 1) { print "Serial Number is $serial\n"; }
+        if ($debug >= 1) { print "Serial Number is $serial\n"; }
     }
     if ($use_influx == 1) { log_to_influx("DiskTemp", $serial, $temp); }
     return $temp;
