@@ -116,6 +116,7 @@ sub run_command {
     my @cmd = @_;
     my ($out, $err);
     my $command = join(' ', @cmd);
+    if ($debug == 2) { print "Command is $command\n; }
     $out = `$command`;
     if ($debug == 2) { print $out; }
     return split(/\n/, $out);
@@ -128,7 +129,10 @@ sub log_to_influx
         if ($name) {
             (my $name_nospaces = $name) =~ s/\s//g;
             my @substitution = join("\n", @substitutions) =~ m/$name_nospaces\#(.+)/g;
-            if (@substitution) { $name_nospaces = $substitution[0]; }
+            if (@substitution) { 
+                $name_nospaces = $substitution[0]; 
+                if ($debug == 2) { print "Name $name substituted with $name_nospaces|n"; }
+            }
             my $data = "$type,component=$influxdb_hostname$name_nospaces value=$value";
             my $payload;
             my $auth;
