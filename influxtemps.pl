@@ -168,7 +168,7 @@ sub get_hd_list {
 sub get_one_drive_temp
 {
     my $disk_dev = shift;
-    if ($debug >= 1) { print "Disk $disk_dev\n"; }
+    if ($debug >= 1) { print "\nDisk $disk_dev\n"; }
     my @diskcommand = ($smartctlCmd, '-a', "/dev/$disk_dev");
     my $temp;
     my $serial;
