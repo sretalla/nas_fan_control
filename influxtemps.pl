@@ -131,7 +131,7 @@ sub log_to_influx
             my @substitution = join("\n", @substitutions) =~ m/$name_nospaces\#(.+)/g;
             if (@substitution) { 
                 $name_nospaces = $substitution[0]; 
-                if ($debug == 2) { print "Name $name substituted with $name_nospaces|n"; }
+                if ($debug == 2) { print "Name $name substituted with $name_nospaces\n"; }
             }
             my $data = "$type,component=$influxdb_hostname$name_nospaces value=$value";
             my $payload;
