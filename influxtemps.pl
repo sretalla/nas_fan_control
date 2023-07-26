@@ -116,7 +116,7 @@ sub run_command {
     my @cmd = @_;
     my ($out, $err);
     my $command = join(' ', @cmd);
-    if ($debug == 2) { print "Command is $command\n; }
+    if ($debug == 2) { print "Command is $command\n"; }
     $out = `$command`;
     if ($debug == 2) { print $out; }
     return split(/\n/, $out);
