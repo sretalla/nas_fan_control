@@ -41,6 +41,9 @@ my $influxdb_hostname="fantest_";
 #  nvme0: Samsung SSD 970 EVO Plus 1TB
 #         ^ Text starting here is what you need to match
 #
+# To filter out based on subsequent text (example, you have 3 Samsung drives, all identifiers start with Samsung, but you want to have the 860 and 870 models measured, not the 850)
+# the filter would look like this: 'Samsung(?:(?!.+850.+)).*'
+#
 # Add as many of these as you want/need
 my @nvmeFilter  = (
     'INTEL',
@@ -58,6 +61,9 @@ my @nvmeFilter  = (
 # Example (freebsd):
 # <Samsung SSD 850 EVO 500GB XXXXXXX>  at scbus1 target 0 lun 0 (ada0,pass24)
 #  ^ Text starting here is what you need to match
+#
+# To filter out based on subsequent text (example, you have 3 Samsung drives, all identifiers start with Samsung, but you want to have the 860 and 870 models measured, not the 850) 
+# the filter would look like this: 'Samsung(?:(?!.+850.+)).*'
 #
 # Add as many of these as you want/need
 my @diskFilter  = (
