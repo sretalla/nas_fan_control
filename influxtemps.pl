@@ -11,8 +11,9 @@ use warnings;
 # $debug: if 2, will print all command output,  the disk list in full and the temp and serial number of each found disk following the smartctl result
 #         if 1, will print the disk list in full and the temp and serial number of each found disk following the smartctl result
 my $debug = 0;
-# $operating_system: either "linux" (SCALE) or "freebsd" (CORE)
-my $operating_system = "linux";
+# $operating_system: leave at "auto" or set manually to either "linux" (SCALE) or "freebsd" (CORE)
+my $operating_system = "auto";
+if ($operating_system eq "auto") { $operating_system = $^O ;  }
 # $use_influx: will not write output to influx DB if set to 0
 my $use_influx = 0;
 # $influx_version: either 1 or 2 (or higher, but uses the syntax for 2)
