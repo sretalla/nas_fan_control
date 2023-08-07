@@ -42,7 +42,7 @@ my $influxdb_hostname="fantest_";
 #         ^ Text starting here is what you need to match
 #
 # To filter out based on subsequent text (example, you have 3 Samsung drives, all identifiers start with Samsung, but you want to have the 860 and 870 models measured, not the 850)
-# the filter would look like this: 'Samsung(?:(?!.+850.+)).*'
+# the filter would look like this: 'Samsung(?:(?!.+850.+))'
 #
 # Add as many of these as you want/need
 my @nvmeFilter  = (
@@ -63,7 +63,7 @@ my @nvmeFilter  = (
 #  ^ Text starting here is what you need to match
 #
 # To filter out based on subsequent text (example, you have 3 Samsung drives, all identifiers start with Samsung, but you want to have the 860 and 870 models measured, not the 850) 
-# the filter would look like this: 'Samsung(?:(?!.+850.+)).*'
+# the filter would look like this: 'Samsung(?:(?!.+850.+))'
 #
 # Add as many of these as you want/need
 my @diskFilter  = (
@@ -86,9 +86,11 @@ my @substitutions  = (
     '2345678#disk2',
     '3456789#disk3'
 );
-
+#
+# ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 # (Carefully) Edit things above this line only to match your needs.
-
+#
+#
 my $diskPattern;
 my $smartctlCmd;
 my $smartpattern = qr/[Ss]erial [Nn]umber\:\s*(\S*)\s[\s|\S]*(?|Temperature_Celsius[\s|\S]{64}(\d*)\s|Airflow_Temperature_Cel[\s|\S]{60}(\d*)\s|Temperature\:\s*(\d*)\sCelsius|Temperature_Internal[\s|\S]{63}(\d*)\s|Current Drive Temperature\:\s*(\d*)\s)/;
