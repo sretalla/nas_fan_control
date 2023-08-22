@@ -210,7 +210,7 @@ sub get_adapter_temp
     my @result = join("\n", run_command(@adaptercommand)) =~ m/$adapterpattern/g;
     if ($result[0]) {
         $temp = $result[0];     
-        if ($debug >= 1) { print "Temperature is $temp\n"; }
+        if ($debug >= 1) { print "Adapter Temperature is $temp\n"; }
     }
     if ($use_influx == 1) { log_to_influx("AdapterTemp", $serial, $temp); }
     return $temp;
