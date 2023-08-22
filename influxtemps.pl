@@ -86,7 +86,8 @@ my @diskFilter  = (
 my @substitutions  = (
     '1234567#disk1',
     '2345678#disk2',
-    '3456789#disk3'
+    '3456789#disk3',
+    'adapter#LSI9211-8i'
 );
 #
 # ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
