@@ -122,7 +122,7 @@ sub main {
     my $disktemp = get_one_drive_temp($disk);
   }
   if ($adapter_temp == 1) {
-    call get_adapter_temp();
+    get_adapter_temp();
   }
 }
 
@@ -202,7 +202,7 @@ sub get_one_drive_temp
 sub get_adapter_temp
 {
     my $disk_dev = shift;
-    if ($debug >= 1) { print "\getting adapter temp"; }
+    if ($debug >= 1) { print "\getting adapter temp\n"; }
     my @adaptercommand = ('mprutil', 'show', 'adapter');
     my $temp;
     my $adapterpattern = '.*Temperature: (\d+) C';
