@@ -212,6 +212,6 @@ sub get_adapter_temp
         $temp = $result[0];     
         if ($debug >= 1) { print "Adapter Temperature is $temp\n"; }
     }
-    if ($use_influx == 1) { log_to_influx("AdapterTemp", $serial, $temp); }
+    if ($use_influx == 1) { log_to_influx("AdapterTemp", 'adapter', $temp); }
     return $temp;
 }
