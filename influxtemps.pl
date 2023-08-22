@@ -205,7 +205,7 @@ sub get_adapter_temp
     if ($debug >= 1) { print "\getting adapter temp"; }
     my @adaptercommand = ('mprutil', 'show', 'adapter');
     my $temp;
-    my $adapterpattern = '.*Temperature: (\d+) C'
+    my $adapterpattern = '.*Temperature: (\d+) C';
     my $serial;
     my @result = join("\n", run_command(@adaptercommand)) =~ m/$adapterpattern/g;
     if ($result[0]) {
