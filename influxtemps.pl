@@ -21,14 +21,16 @@ my $influx_version = 1;
 # $influx_token needed only if you use influx version 2 or later = "some token ... ends with ==";
 my $influx_token = "btptrgKkYm9B8Ehxe_J00_4UTkd_xxxxxxxxxxxxxxxxxxxxxxx_yRJ53FqsNZGvaUsm0bpvaChNPlbeMuoifOg==";
 my $influx_org = "home"; #not required for version 1
-my $influxdb_db="freenas"; # now called bucket in the new API
+my $influxdb_db = "freenas"; # now called bucket in the new API
 # $influxdb_host: host name or IP address of the server hosting influxdb
-my $influxdb_host="192.168.1.1";
-my $influxdb_port="8086";
-my $influxdb_protocol="http";
+my $influxdb_host = "192.168.1.1";
+my $influxdb_port = "8086";
+my $influxdb_protocol = "http";
 # $influxdb_hostname: optional (can be a blank string), prefix for each disk attached to this server/script... 
 # useful for differentiation if logging multiple servers to the same influxdb with this script. No spaces.
-my $influxdb_hostname="fantest_";
+my $influxdb_hostname = "fantest_";
+# $adapter_temp: set to 1 to capture the LSI adapter temp (from 'mprutil show adapter')
+my $adapter_temp = 0;
 
 # NVME drive filters: Each type of drive to be included needs to be added to this array, you may need to go further than the first word to ensure exclusion of additional matches by model.
 # What you want to see here is a string or a regular expression that matches the text you see in the output of 'sfdisk -l' (Linux) or 'nvmecontrol devlist' (freebsd)
@@ -119,6 +121,9 @@ sub main {
   foreach my $disk (@hd_list) {
     my $disktemp = get_one_drive_temp($disk);
   }
+  if ($adapter_temp == 1) {
+    call get_adapter_temp();
+  }
 }
 
 sub run_command {
@@ -191,5 +196,22 @@ sub get_one_drive_temp
         if ($debug >= 1) { print "Serial Number is $serial\n"; }
     }
     if ($use_influx == 1) { log_to_influx("DiskTemp", $serial, $temp); }
+    return $temp;
+}
+
+sub get_adapter_temp
+{
+    my $disk_dev = shift;
+    if ($debug >= 1) { print "\getting adapter temp"; }
+    my @adaptercommand = ('mprutil', 'show', 'adapter');
+    my $temp;
+    my $adapterpattern = '.*Temperature: (\d+) C'
+    my $serial;
+    my @result = join("\n", run_command(@adaptercommand)) =~ m/$adapterpattern/g;
+    if ($result[0]) {
+        $temp = $result[0];     
+        if ($debug >= 1) { print "Temperature is $temp\n"; }
+    }
+    if ($use_influx == 1) { log_to_influx("AdapterTemp", $serial, $temp); }
     return $temp;
 }
