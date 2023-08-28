@@ -122,7 +122,7 @@ sub main {
   foreach my $disk (@hd_list) {
     my $disktemp = get_one_drive_temp($disk);
   }
-  if ($adapter_temp == 1) {
+  if ($adapter_temp == 1 && $operating_system eq 'freebsd') {
     get_adapter_temp();
   }
 }
