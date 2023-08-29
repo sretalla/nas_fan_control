@@ -29,7 +29,7 @@ my $influxdb_protocol = "http";
 # $influxdb_hostname: optional (can be a blank string), prefix for each disk attached to this server/script... 
 # useful for differentiation if logging multiple servers to the same influxdb with this script. No spaces.
 my $influxdb_hostname = "fantest_";
-# $adapter_temp: set to 1 to capture the LSI adapter temp (from 'mprutil show adapter' or 'storcli /c0 show all') 
+# $adapter_temp: set to 1 to capture the LSI adapter (9300 series and up) temperature (from 'mprutil show adapter' or 'storcli /c0 show all' on the respective OS) 
 my $adapter_temp = 0;
 
 # NVME drive filters: Each type of drive to be included needs to be added to this array, you may need to go further than the first word to ensure exclusion of additional matches by model.
