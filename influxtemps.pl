@@ -29,7 +29,7 @@ my $influxdb_protocol = "http";
 # $influxdb_hostname: optional (can be a blank string), prefix for each disk attached to this server/script... 
 # useful for differentiation if logging multiple servers to the same influxdb with this script. No spaces.
 my $influxdb_hostname = "fantest_";
-# $adapter_temp: set to 1 to capture the LSI adapter temp (from 'mprutil show adapter') TrueNAS CORE only at this time.
+# $adapter_temp: set to 1 to capture the LSI adapter temp (from 'mprutil show adapter' or 'storcli /c0 show all') 
 my $adapter_temp = 0;
 
 # NVME drive filters: Each type of drive to be included needs to be added to this array, you may need to go further than the first word to ensure exclusion of additional matches by model.
@@ -96,14 +96,20 @@ my @substitutions  = (
 #
 my $diskPattern;
 my $smartctlCmd;
+my $adapterpattern;
+my @adaptercommand;
 my $smartpattern = qr/[Ss]erial [Nn]umber\:\s*(\S*)\s[\s|\S]*(?|Temperature_Celsius[\s|\S]{64}(\d*)\s|Airflow_Temperature_Cel[\s|\S]{60}(\d*)\s|Temperature\:\s*(\d*)\sCelsius|Temperature_Internal[\s|\S]{63}(\d*)\s|Current Drive Temperature\:\s*(\d*)\s)/;
 if ( $operating_system eq 'linux' ) {
     $smartctlCmd = '/usr/sbin/smartctl';
     $diskPattern = join("", '(?|Disk\s+\/dev\/(s.+):.*\sDisk model: (?|',join("\|", @diskFilter),')|Disk\s+\/dev\/(nvme\d)n\d:.*\sDisk model: (?|',join("\|", @nvmeFilter),'))');
+    $adapterpattern = '.*ROC temperature.+ = (\d+).*';
+    @adaptercommand = ('storcli', '/c0', 'show all')
 }
 elsif ( $operating_system eq 'freebsd' ) {
     $smartctlCmd = '/usr/local/sbin/smartctl';
     $diskPattern = join("", '(?|<(?|',join("\|", @diskFilter),').+(?|pass\d+,(a?da\d+)|\((a?da\d+),pass\d+.+)|.(nvme\d+):.(?|',join("\|", @nvmeFilter),').+)');
+    $adapterpattern = '.*Temperature: (\d+) C';
+    @adaptercommand = ('mprutil', 'show', 'adapter')
 }
 
 my $influxdb_url;
@@ -122,7 +128,7 @@ sub main {
   foreach my $disk (@hd_list) {
     my $disktemp = get_one_drive_temp($disk);
   }
-  if ($adapter_temp == 1 && $operating_system eq 'freebsd') {
+  if ($adapter_temp == 1) {
     get_adapter_temp();
   }
 }
@@ -204,9 +210,7 @@ sub get_adapter_temp
 {
     my $disk_dev = shift;
     if ($debug >= 1) { print "\getting adapter temp\n"; }
-    my @adaptercommand = ('mprutil', 'show', 'adapter');
     my $temp;
-    my $adapterpattern = '.*Temperature: (\d+) C';
     my $serial;
     my @result = join("\n", run_command(@adaptercommand)) =~ m/$adapterpattern/g;
     if ($result[0]) {
