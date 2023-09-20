@@ -13,7 +13,6 @@ use warnings;
 my $debug = 0;
 # $operating_system: leave at "auto" or set manually to either "linux" (SCALE) or "freebsd" (CORE)
 my $operating_system = "auto";
-if ($operating_system eq "auto") { $operating_system = $^O ;  }
 # $use_influx: will not write output to influx DB if set to 0
 my $use_influx = 0;
 # $influx_version: either 1 or 2 (or higher, but uses the syntax for 2)
@@ -87,13 +86,14 @@ my @substitutions  = (
     '1234567#disk1',
     '2345678#disk2',
     '3456789#disk3',
-    'adapter#LSI9211-8i'
+    'adapter#LSI9300-8i'
 );
 #
 # ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 # (Carefully) Edit things above this line only to match your needs.
 #
 #
+if ($operating_system eq "auto") { $operating_system = $^O ;  }
 my $diskPattern;
 my $smartctlCmd;
 my $adapterpattern;
