@@ -213,6 +213,7 @@ my $operating_system = 'linux';
 # - "supermicro" (SuperMicro X10SRH-cF, some other models too)
 # - "asrock" (ASRock Rack X470D4U2-2T)
 # - "ocl" (OpenCorsairLink Fan controller)
+# - "tyan" (TYAN/Mitac S8050, some other models too)
 #---------------------------------------------------------------------------
 my $script_mode = 'ocl';
 
@@ -222,6 +223,14 @@ my $script_mode = 'ocl';
 my @asrock_zones = (
     { FAN1 => 0 },  # CPU
     { FAN2 => 1, FAN3 => 2, FAN4 => 3, FAN5 => 4, FAN6 => 5 }, # HD
+);
+
+#---------------------------------------------------------------------------
+# Tyan mapping -- TODO: put in a config file
+#---------------------------------------------------------------------------
+my @tyan_zones = (
+    { CPU0_FAN => 0, CPU1_FAN => 1 },  # CPU
+    { SYS_FAN_1 => 2, SYS_FAN_2 => 3, SYS_FAN_3 => 4, SYS_FAN_4 => 5 }, # HD
 );
 
 #---------------------------------------------------------------------------
@@ -735,10 +744,21 @@ sub main {
             $ave_fan_speed = get_fan_ave_speed(@hd_fan_list);
             printf( LOG "%6s", $ave_fan_speed );
             printf( LOG "%4i/%-3i", $hd_fan_duty_old, $hd_fan_duty );
+            if (index($ipmitool, " -H ") != -1) {
+                $cput = get_cpu_temp_ipmi();
+            } else 
+            {
+                $cput = get_cpu_temp_sysctl();
+            } 
 
-            $cput = get_cpu_temp_sysctl();
-            printf( LOG "%4i %6.2f %6.2f  %6.2f  %6.2f%%\n",
+	        if (!defined $P) {
+            	printf( LOG "%4i %6.2s %6.2s  %6.2s  %6.2f%%\n",
+                $cput, "NA", "NA", "NA", $hd_duty );
+	        }
+            else {
+            	printf( LOG "%4i %6.2f %6.2f  %6.2f  %6.2f%%\n",
                 $cput, $P, $I, $D, $hd_duty );
+            }
         }
 
         # verify_fan_speed_levels function is fairly complicated
@@ -827,6 +847,20 @@ sub asrock_build_set_command {
     return ($ipmitool, 'raw', '0x3a', '0x01', (map { sprintf("0x%2x", $_) } @asrock_current_fan_duty_cycle_values), '0x0', '0x0');
 }
 
+sub tyan_set_zone_values
+{
+    my ( $zone, $duty) = @_;
+    my @result;
+    my @command;
+    foreach my $fan (values(%{ $tyan_zones[$zone] })) {
+		@command = ($ipmitool, 'raw', '0x2e', '0x44', '0xfd', '0x19', '0x00' , $fan, '0x01', $duty);
+		@result = run_command(@command);
+    }
+    foreach my $fan (keys(%{ $tyan_zones[$zone] })) {
+        if ($use_influx == 1 && $influx_fan_duty == 1) { log_to_influx("FanDuty", $fan, $duty) ; }
+    }	
+}
+
 sub ocl_set_zone_values
 {
     my ( $zone, $duty) = @_;
@@ -895,13 +929,14 @@ sub get_hd_list {
       my $joinedcmd = join("\n", run_command(@linuxcmd));
       my @drivechunks = split(/\n{3}/, $joinedcmd);
       foreach (@drivechunks) {
-          next if (/SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON|mapper/);
+          next if (/QEMU|SSD|Verbatim|Kingston|Elements|Enclosure|Virtual|KINGSTON|mapper/);
           if (/^Disk\s+\/dev\/(s.+):/) {
               dprint(2, $1);
               push(@vals, $1);
           }
       }
       dprint_list(3, "@vals");
+      dprint_list(3, "TestRyan @vals");
     }
     return @vals;
 }
@@ -1208,9 +1243,13 @@ sub control_cpu_fan {
     my ($old_cpu_fan_level) = @_;
 
     # no longer used, because sysctl is better, and more compatible.
-    # my $cpu_temp = get_cpu_temp_ipmi();
-
-    my $cpu_temp = get_cpu_temp_sysctl();
+    my $cpu_temp;
+    if (index($ipmitool, " -H ") != -1) {
+        $cpu_temp = get_cpu_temp_ipmi();
+    } else 
+    {
+        $cpu_temp = get_cpu_temp_sysctl();
+    }
 
     my $cpu_fan_level = decide_cpu_fan_level( $cpu_temp, $old_cpu_fan_level );
 
@@ -1437,6 +1476,13 @@ sub set_fan_mode {
         }
         @cmd = ();
     }
+    elsif ($script_mode eq 'tyan') {
+        return if ($fan_mode ne 'full');
+        foreach my $zone (0, 1) {
+            tyan_set_zone_values($zone, 100);
+        }
+        @cmd = ();
+    }
     else {
         $mode = get_fan_mode_code($fan_mode);
         @cmd = ($ipmitool, 'raw', '0x30', '0x45', '0x01', $mode);
@@ -1494,7 +1540,13 @@ sub get_cpu_temp_sysctl {
 # reads the IPMI 'CPU Temp' field to determine overall CPU temperature
 sub get_cpu_temp_ipmi {
     my $cpu_temp;
-    my @cmd = ($ipmitool, 'sensor', 'get', 'CPU Temp');
+    my @cmd;
+    if ($script_mode eq 'tyan') {
+        @cmd = ($ipmitool, 'sensor', 'get', 'P0_T');
+    }
+    else { 
+    	@cmd = ($ipmitool, 'sensor', 'get', 'CPU Temp');
+    }
     foreach (run_command(@cmd)) {
         if (/^\s*sensor\s+reading\s*:\s*(\d+)\D/i) {
             $cpu_temp = $1;
@@ -1583,6 +1635,11 @@ sub set_fan_zone_duty_cycle {
     elsif ($script_mode eq 'asrock') {
         asrock_set_zone_values($zone, $duty);
         @cmd = asrock_build_set_command();
+    }
+    elsif ($script_mode eq 'tyan') {
+        tyan_set_zone_values($zone, $duty);
+        @cmd = (); 
+	#need to run commands in the set values sub since fans are set with individual commands
     }
     elsif ($script_mode eq 'ocl') {
         ocl_set_zone_values($zone, $duty);
