@@ -8,6 +8,10 @@ use warnings;
 # It will log disk temperatures for disks according to the filters set and ensures that serial numbers are used rather than disk identifiers
 # to ensure the same disk can always be logged with the same name. Serial numbers may be substituted for text specified for each one (or not).
 
+# NOTE: the defaults for $debug and $use_influx (both set to 0 here) will mean that running the script has no output.
+# It is recommended to start by setting $debug to 2 for the first run and only once you see all disks as you want, setting $use_influx to 1.
+# After the script runs fine and logs to influx peroperly, $debug can be set back to 0.
+
 # $debug: if 2, will print all command output,  the disk list in full and the temp and serial number of each found disk following the smartctl result
 #         if 1, will print the disk list in full and the temp and serial number of each found disk following the smartctl result
 my $debug = 0;
