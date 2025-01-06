@@ -123,7 +123,8 @@ my @hd_list;
 
 main();
 
-sub main {
+sub main 
+{
   @hd_list = get_hd_list();
   foreach my $disk (@hd_list) {
     my $disktemp = get_one_drive_temp($disk);
@@ -133,7 +134,8 @@ sub main {
   }
 }
 
-sub run_command {
+sub run_command 
+{
     my @cmd = @_;
     my ($out, $err);
     my $command = join(' ', @cmd);
@@ -169,7 +171,8 @@ sub log_to_influx
         }
 }
 
-sub get_hd_list {
+sub get_hd_list 
+{
     my @vals;
     my @drive;
     if ($operating_system eq 'freebsd' ) {
@@ -219,4 +222,12 @@ sub get_adapter_temp
     }
     if ($use_influx == 1) { log_to_influx("AdapterTemp", 'adapter', $temp); }
     return $temp;
+}
+
+sub debug_log
+{
+    my ($logLevel, $logText) = @_;
+    if ($debug >= $logLevel){
+        print $logText;
+    }
 }
